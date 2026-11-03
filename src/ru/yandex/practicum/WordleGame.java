@@ -2,9 +2,11 @@ package ru.yandex.practicum;
 
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Random;
+import java.util.Set;
 
 /*
 в этом классе хранится словарь и состояние игры
@@ -27,6 +29,9 @@ public class WordleGame {
     private final Random random;
     private final PrintWriter log;
     private final List<Move> history = new ArrayList<>();
+    private final Set<String> suggestedWords = new HashSet<>();
+
+    private List<String> candidates;
 
     public WordleGame(WordleDictionary dictionary, Random random, PrintWriter log) {
         this(dictionary, dictionary.randomWord(random), random, log);
@@ -47,6 +52,8 @@ public class WordleGame {
             throw new IllegalArgumentException("Ответ должен присутствовать в словаре");
         }
 
+        candidates = dictionary.getWords();
+
         log.println("Новая игра, ответ: " + this.answer);
     }
 
@@ -56,10 +63,34 @@ public class WordleGame {
         String word = validateGuess(input);
         Move move = new Move(word, WordleDictionary.feedback(answer, word));
 
+        filterCandidates(move);
         history.add(move);
         logMove(move);
 
         return move;
+    }
+
+    public String suggestWord() {
+        requireActiveGame();
+
+        List<String> available = candidates.stream()
+                .filter(word -> !suggestedWords.contains(word))
+                .toList();
+
+        if (available.isEmpty()) {
+            throw new IllegalStateException("Не осталось новых слов для подсказки");
+        }
+
+        String suggestion = available.get(random.nextInt(available.size()));
+        suggestedWords.add(suggestion);
+
+        log.println("Подсказка: " + suggestion + ", доступных вариантов: " + available.size());
+
+        return suggestion;
+    }
+
+    public List<String> getCandidates() {
+        return List.copyOf(candidates);
     }
 
     public int getRemainingAttempts() {
@@ -96,12 +127,25 @@ public class WordleGame {
         return word;
     }
 
+    private void filterCandidates(Move move) {
+        List<String> matching = candidates.stream()
+                .filter(candidate -> WordleDictionary.feedback(candidate, move.word()).equals(move.feedback()))
+                .toList();
+
+        if (!matching.contains(answer)) {
+            throw new IllegalStateException("При фильтрации потерян правильный ответ");
+        }
+
+        candidates = matching;
+    }
+
     private void logMove(Move move) {
         StringBuilder message = new StringBuilder("Ход: ")
                 .append(history.size())
                 .append(", слово: ").append(move.word())
                 .append(", результат: ").append(move.feedback())
-                .append(", осталось попыток: ").append(getRemainingAttempts());
+                .append(", осталось попыток: ").append(getRemainingAttempts())
+                .append(", кандидатов: ").append(candidates.size());
 
         log.println(message);
     }
