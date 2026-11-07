@@ -24,7 +24,26 @@ import java.util.Random;
 public class Wordle {
 
     public static void main(String[] args) {
-        start(args);
+        PrintWriter output = new PrintWriter(
+                new OutputStreamWriter(System.out, StandardCharsets.UTF_8),
+                true
+        );
+
+        try {
+            WordleOptions options = WordleOptions.parse(args);
+
+            run(
+                    options.dictionaryPath(),
+                    options.logPath(),
+                    new InputStreamReader(System.in, StandardCharsets.UTF_8),
+                    output,
+                    new Random()
+            );
+        } catch (InvalidPathException exception) {
+            output.println("Некорректный путь к файлу словаря или лога");
+        } catch (IllegalArgumentException exception) {
+            output.println(exception.getMessage());
+        }
     }
 
     static void run(
@@ -91,29 +110,6 @@ public class Wordle {
         printResult(game, output, log);
         WordleLog.check(log);
         output.flush();
-    }
-
-    private static void start(String[] args) {
-        PrintWriter output = new PrintWriter(
-                new OutputStreamWriter(System.out, StandardCharsets.UTF_8),
-                true
-        );
-
-        try {
-            WordleOptions options = WordleOptions.parse(args);
-
-            run(
-                    options.dictionaryPath(),
-                    options.logPath(),
-                    new InputStreamReader(System.in, StandardCharsets.UTF_8),
-                    output,
-                    new Random()
-            );
-        } catch (InvalidPathException exception) {
-            output.println("Некорректный путь к файлу словаря или лога");
-        } catch (IllegalArgumentException exception) {
-            output.println(exception.getMessage());
-        }
     }
 
     private static void runSession(

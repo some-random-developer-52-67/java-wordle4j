@@ -37,20 +37,16 @@ public class WordleDictionaryLoader {
 
             while ((line = reader.readLine()) != null) {
                 lines++;
-                String word = WordleDictionary.normalize(line);
-
-                if (WordleDictionary.isValidWord(word)) {
-                    words.add(word);
-                }
+                words.add(line);
             }
         }
 
         log.println("Прочитано строк: " + lines);
 
-        if (words.isEmpty()) {
+        try {
+            return new WordleDictionary(words, log);
+        } catch (IllegalArgumentException exception) {
             throw new EmptyDictionaryException(path);
         }
-
-        return new WordleDictionary(words, log);
     }
 }

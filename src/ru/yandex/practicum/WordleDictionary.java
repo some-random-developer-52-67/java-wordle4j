@@ -19,7 +19,7 @@ public class WordleDictionary {
 
     public static final int WORD_LENGTH = 5;
 
-    private static final Pattern WORD_PATTERN = Pattern.compile("[а-я]{" + WORD_LENGTH + "}");
+    private static final Pattern WORD_PATTERN = Pattern.compile("[а-яА-ЯёЁ]{" + WORD_LENGTH + "}");
     private static final char FIRST_LETTER = 'а';
     private static final int ALPHABET_SIZE = 'я' - FIRST_LETTER + 1;
     private static final char EXACT_MATCH = '+';
@@ -52,7 +52,7 @@ public class WordleDictionary {
     }
 
     public static boolean isValidWord(String word) {
-        return word != null && WORD_PATTERN.matcher(normalize(word)).matches();
+        return word != null && WORD_PATTERN.matcher(word).matches();
     }
 
     public static String feedback(String answer, String guess) {
